@@ -19,6 +19,9 @@ from django.contrib import admin
 from .views import Home
 
 urlpatterns = [
+    # dockerflow urls
+    url(r'^', include('dashboard.dockerflow_urls')),
+
     # our app urls
     url(r'^$', Home.as_view(), name='home'),
     url(r'^api/docs/', include('rest_framework_swagger.urls')),

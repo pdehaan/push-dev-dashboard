@@ -54,10 +54,6 @@ To deploy the app to the Mozilla Cloud Ops Dev Deis cluster, you will need to
 
     deis create
 
-#. Set the deis app to use the "multi" buildpack::
-
-    deis config:set BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-multi
-
 #. Push code to the deis remote::
 
     git push deis master

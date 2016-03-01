@@ -185,6 +185,14 @@ SITE_ID = 1
 # TODO: Set real stage/prod AUTOPUSH_KEYS_ENDPOINT
 AUTOPUSH_KEYS_ENDPOINT = config('AUTOPUSH_KEYS_ENDPOINT', None)
 
+BROKER_URL = 'django://'
+INSTALLED_APPS += ['kombu.transport.django', ]
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache'
+    }
+}
+
 REDIS_URL = config('REDIS_URL', False)
 
 if REDIS_URL:
@@ -196,13 +204,5 @@ if REDIS_URL:
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient"
             }
-        }
-    }
-else:
-    BROKER_URL = 'django://'
-    INSTALLED_APPS += ['kombu.transport.django', ]
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache'
         }
     }

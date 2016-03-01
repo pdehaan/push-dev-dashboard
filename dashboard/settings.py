@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'cacheback',
     'pipeline',
     'rest_framework',
     'rest_framework_swagger',
@@ -186,3 +187,25 @@ AUTOPUSH_KEYS_ENDPOINT = config(
     'AUTOPUSH_KEYS_ENDPOINT',
     'https://szdqmc7xl7.execute-api.us-east-1.amazonaws.com/test/keys'
 )
+
+REDIS_URL = config('REDIS_URL', False)
+
+if REDIS_URL:
+    BROKER_URL = REDIS_URL + '/0'
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "%s/1" % REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient"
+            }
+        }
+    }
+else:
+    BROKER_URL = 'django://'
+    INSTALLED_APPS += ['kombu.transport.django', ]
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache'
+        }
+    }

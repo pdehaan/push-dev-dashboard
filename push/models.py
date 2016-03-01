@@ -11,6 +11,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+from cacheback.decorators import cacheback
+
 from .managers import PushApplicationManager
 
 VAPID_KEY_STATUS_CHOICES = (
@@ -106,3 +108,15 @@ class PushApplication(models.Model):
             getattr(settings, 'AUTOPUSH_KEYS_ENDPOINT', '')
         )
         return resp.json()
+
+    def get_messages_from_autopush(self):
+        return get_app_messages_from_autopush(self.vapid_key)
+
+
+@cacheback()
+def get_app_messages_from_autopush(vapid_key):
+    resp = requests.get(
+        getattr(settings, 'AUTOPUSH_KEYS_ENDPOINT') +
+        '/%s' % vapid_key
+    )
+    return resp.json()

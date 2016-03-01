@@ -13,7 +13,8 @@ from django.utils import timezone
 
 from model_mommy import mommy
 
-from .models import PushApplication, extract_public_key
+from .models import (PushApplication, extract_public_key,
+                     get_app_messages_from_autopush)
 
 
 def _gen_keys():
@@ -26,7 +27,7 @@ def _gen_keys():
 class PushApplicationTests(TestCase):
     def setUp(self):
         self.user = mommy.make('auth.User')
-        self.pa = PushApplication(user=self.user, name='test app')
+        self.pa = mommy.make(PushApplication, user=self.user, name='test app')
         self.signing_key, self.verifying_key, self.vapid_key = _gen_keys()
         self.pa.vapid_key = self.vapid_key
         self.pa.save()
@@ -92,6 +93,29 @@ class PushApplicationTests(TestCase):
             )
         )
         pa.post_key_to_autopush()
+
+    @fudge.patch('push.models.get_app_messages_from_autopush')
+    def test_get_messages_from_autopush_uses_cacheback_function(self,
+                                                                gamfa):
+        gamfa.expects_call().with_args(self.pa.vapid_key)
+        self.pa.get_messages_from_autopush()
+
+
+class GetAppMessagesFromAutopushTests(TestCase):
+    @fudge.patch('requests.get')
+    def test_get_app_messages_from_autopush_uses_requests_json(self, get):
+        pa = mommy.make(PushApplication, vapid_key_status='valid')
+        get_messages_response_json = {
+            'public-key': pa.vapid_key,
+            'messages': []
+        }
+        get.expects_call().returns(
+            fudge.Fake().expects('json').returns(
+                get_messages_response_json
+            )
+        )
+        # cacheback assigns 'fn' attribute as the real function
+        get_app_messages_from_autopush.fn(pa.vapid_key)
 
 
 class ExtractPublicKeyTests(TestCase):
